@@ -16,24 +16,21 @@
  */
 package org.exoplatform.commons.persistence.impl;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Field;
-import java.net.URL;
-import java.util.Enumeration;
-
-import org.hibernate.SessionFactoryObserver;
+import org.exoplatform.commons.api.persistence.ExoEntityProcessor;
+import org.exoplatform.services.log.ExoLogger;
+import org.exoplatform.services.log.Log;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.integrator.spi.Integrator;
 import org.hibernate.metamodel.source.MetadataImplementor;
 import org.hibernate.service.spi.SessionFactoryServiceRegistry;
 
-import org.exoplatform.commons.api.persistence.ExoEntityProcessor;
-import org.exoplatform.services.log.ExoLogger;
-import org.exoplatform.services.log.Log;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.util.Enumeration;
 
 /**
  * This integrator is called by Hibernate at run time, when JPA creates the PLF
@@ -88,20 +85,8 @@ public class ExoEntityScanner implements Integrator {
   }
 
   private boolean isExoPersistenceUnit(Configuration configuration) throws IllegalAccessException {
-    SessionFactoryObserver observer = configuration.getSessionFactoryObserver();
-    if (observer!=null) {
-      for (Field fieldObserver : observer.getClass().getDeclaredFields()) {
-        fieldObserver.setAccessible(true);
-        Object value = fieldObserver.get(observer);
-        for (Field field : value.getClass().getDeclaredFields()) {
-          field.setAccessible(true);
-          if (PU_FIELD_NAME.equals(field.getName())) {
-            return EntityManagerService.PERSISTENCE_UNIT_NAME.equals(field.get(value));
-          }
-        }
-      }
-    }
-    return false;
+    // this scanner is used only for exo-pu (should have a property named "persistenceUnitName" set to "exo-pu")
+    return EntityManagerService.PERSISTENCE_UNIT_NAME.equals(configuration.getProperty(PU_FIELD_NAME));
   }
 
   public void integrate(MetadataImplementor metadata,
